@@ -26,7 +26,6 @@ func Parse(filePath string) Config {
 
 func (c *Config) MapArgs(name string, args string) map[string]string {
 	m := map[string]string{}
-	m["name"] = name
 	if args == "" && len(c.Args) == 0 {
 		return m
 	}
@@ -45,5 +44,6 @@ func (c *Config) MapArgs(name string, args string) map[string]string {
 			log.Fatalln("Illegal argument.", arg)
 		}
 	}
+	m["name"] = name
 	return m
 }
