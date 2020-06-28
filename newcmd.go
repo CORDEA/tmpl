@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"github.com/google/subcommands"
+	"log"
 	"path"
 	"tmpl/config"
 )
@@ -43,6 +44,9 @@ func (n *newCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) s
 		templatePath: conf.TemplatePath,
 		args:         args,
 	}
-	generator.generate()
+	if err := generator.generate(); err != nil {
+		log.Println(err)
+		return subcommands.ExitFailure
+	}
 	return subcommands.ExitSuccess
 }

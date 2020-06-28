@@ -1,8 +1,8 @@
 package main
 
 import (
+	"errors"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,34 +14,42 @@ type generator struct {
 	args         map[string]string
 }
 
-func (g *generator) generate() {
-	for _, path := range g.listFiles() {
-		target := g.makeTargetPath(path)
+func (g *generator) generate() error {
+	files, err := g.listFiles()
+	if err != nil {
+		return err
+	}
+	for _, path := range files {
+		target, err := g.makeTargetPath(path)
+		if err != nil {
+			return err
+		}
 		data, err := ioutil.ReadFile(path)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		tmpl, err := template.New("").Parse(string(data))
 		if err != nil {
-			panic(err)
+			return err
 		}
 		if err = os.MkdirAll(filepath.Dir(target), 0755); err != nil {
-			panic(err)
+			return err
 		}
 		file, err := os.Create(target)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		if err = tmpl.Execute(file, g.args); err != nil {
-			panic(err)
+			return err
 		}
 		if err = file.Close(); err != nil {
-			panic(err)
+			return err
 		}
 	}
+	return nil
 }
 
-func (g *generator) listFiles() []string {
+func (g *generator) listFiles() ([]string, error) {
 	var files []string
 	err := filepath.Walk(g.templatePath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -53,16 +61,13 @@ func (g *generator) listFiles() []string {
 		files = append(files, path)
 		return nil
 	})
-	if err != nil {
-		panic(err)
-	}
-	return files
+	return files, err
 }
 
-func (g *generator) makeTargetPath(path string) string {
+func (g *generator) makeTargetPath(path string) (string, error) {
 	path, err := filepath.Rel(g.templatePath, path)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 	newPath := ""
 	for _, lst := range strings.Split(path, string(filepath.Separator)) {
@@ -70,12 +75,12 @@ func (g *generator) makeTargetPath(path string) string {
 			key := lst[1 : len(lst)-1]
 			val, ok := g.args[key]
 			if !ok {
-				log.Fatalln("Required argument does not exist.", key)
+				return "", errors.New("Required argument does not exist. " + key)
 			}
 			newPath = filepath.Join(newPath, filepath.FromSlash(val))
 		} else {
 			newPath = filepath.Join(newPath, lst)
 		}
 	}
-	return newPath
+	return newPath, nil
 }
