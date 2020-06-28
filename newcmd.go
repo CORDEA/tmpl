@@ -11,7 +11,7 @@ type newCmd struct {
 }
 
 func (*newCmd) Name() string {
-	return ""
+	return "new"
 }
 
 func (*newCmd) Synopsis() string {
