@@ -6,9 +6,8 @@ import (
 )
 
 type Config struct {
-	Name string
-	TemplatePath string
-	Args []string
+	TemplatePath string   `yaml:"templatePath"`
+	Args         []string `yaml:"args"`
 }
 
 func Parse(filePath string) Config {
@@ -17,8 +16,7 @@ func Parse(filePath string) Config {
 		panic(err)
 	}
 	config := Config{}
-	err = yaml.Unmarshal(file, config)
-	if err != nil {
+	if err = yaml.Unmarshal(file, &config); err != nil {
 		panic(err)
 	}
 	return config
