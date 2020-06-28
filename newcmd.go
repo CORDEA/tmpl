@@ -4,6 +4,13 @@ import (
 	"context"
 	"flag"
 	"github.com/google/subcommands"
+	"path"
+	"tmpl/config"
+)
+
+const (
+	baseDir  = "templates"
+	fileName = "template.yaml"
 )
 
 type newCmd struct {
@@ -29,5 +36,13 @@ func (n *newCmd) SetFlags(f *flag.FlagSet) {
 }
 
 func (n *newCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
+	set := f.Arg(0)
+	conf := config.Parse(path.Join(baseDir, set, fileName))
+	args := conf.MapArgs(n.name, n.args)
+	generator := generator{
+		templatePath: conf.TemplatePath,
+		args:         args,
+	}
+	generator.generate()
 	return subcommands.ExitSuccess
 }
