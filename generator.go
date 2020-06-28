@@ -23,9 +23,14 @@ func (g *generator) listFiles() []string {
 		if err != nil {
 			return err
 		}
-		if !info.IsDir() {
-			files = append(files, path)
+		if info.IsDir() {
+			return nil
 		}
+		path, err = filepath.Rel(g.templatePath, path)
+		if err != nil {
+			return err
+		}
+		files = append(files, path)
 		return nil
 	})
 	if err != nil {
