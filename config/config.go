@@ -27,7 +27,7 @@ func Parse(filePath string) Config {
 func (c *Config) MapArgs(name string, args string) map[string]string {
 	m := map[string]string{}
 	m["name"] = name
-	if args == "" {
+	if args == "" && len(c.Args) == 0 {
 		return m
 	}
 	for _, arg := range strings.Split(args, ",") {
