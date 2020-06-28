@@ -1,10 +1,12 @@
 package main
 
 import (
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
+	"text/template"
 )
 
 type generator struct {
@@ -13,7 +15,30 @@ type generator struct {
 }
 
 func (g *generator) generate() {
-	g.listFiles()
+	for _, path := range g.listFiles() {
+		target := g.makeTargetPath(path)
+		data, err := ioutil.ReadFile(path)
+		if err != nil {
+			panic(err)
+		}
+		tmpl, err := template.New("").Parse(string(data))
+		if err != nil {
+			panic(err)
+		}
+		if err = os.MkdirAll(filepath.Dir(target), 0755); err != nil {
+			panic(err)
+		}
+		file, err := os.Create(target)
+		if err != nil {
+			panic(err)
+		}
+		if err = tmpl.Execute(file, g.args); err != nil {
+			panic(err)
+		}
+		if err = file.Close(); err != nil {
+			panic(err)
+		}
+	}
 }
 
 func (g *generator) listFiles() []string {
