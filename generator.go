@@ -13,8 +13,7 @@ type generator struct {
 }
 
 func (g *generator) generate() {
-	paths := g.listFiles()
-	g.replacePath(paths)
+	g.listFiles()
 }
 
 func (g *generator) listFiles() []string {
@@ -26,10 +25,6 @@ func (g *generator) listFiles() []string {
 		if info.IsDir() {
 			return nil
 		}
-		path, err = filepath.Rel(g.templatePath, path)
-		if err != nil {
-			return err
-		}
 		files = append(files, path)
 		return nil
 	})
@@ -39,22 +34,23 @@ func (g *generator) listFiles() []string {
 	return files
 }
 
-func (g *generator) replacePath(files []string) {
-	for i := range files {
-		file := files[i]
-		replaced := ""
-		for _, lst := range strings.Split(file, string(filepath.Separator)) {
-			if strings.HasPrefix(lst, "+") && strings.HasSuffix(lst, "+") {
-				key := lst[1 : len(lst)-1]
-				val, ok := g.args[key]
-				if !ok {
-					log.Fatalln("Required argument does not exist.", key)
-				}
-				replaced = filepath.Join(replaced, filepath.FromSlash(val))
-			} else {
-				replaced = filepath.Join(replaced, lst)
-			}
-		}
-		files[i] = replaced
+func (g *generator) makeTargetPath(path string) string {
+	path, err := filepath.Rel(g.templatePath, path)
+	if err != nil {
+		panic(err)
 	}
+	newPath := ""
+	for _, lst := range strings.Split(path, string(filepath.Separator)) {
+		if strings.HasPrefix(lst, "+") && strings.HasSuffix(lst, "+") {
+			key := lst[1 : len(lst)-1]
+			val, ok := g.args[key]
+			if !ok {
+				log.Fatalln("Required argument does not exist.", key)
+			}
+			newPath = filepath.Join(newPath, filepath.FromSlash(val))
+		} else {
+			newPath = filepath.Join(newPath, lst)
+		}
+	}
+	return newPath
 }
