@@ -8,6 +8,7 @@ import (
 
 type newCmd struct {
 	name string
+	args string
 }
 
 func (*newCmd) Name() string {
@@ -24,6 +25,7 @@ func (*newCmd) Usage() string {
 
 func (n *newCmd) SetFlags(f *flag.FlagSet) {
 	f.StringVar(&n.name, "name", "", "name")
+	f.StringVar(&n.args, "args", "", "args")
 }
 
 func (n *newCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
